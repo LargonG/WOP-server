@@ -15,6 +15,8 @@ string submit_path;
 string test_path;
 string language;
 string prog_name;
+string task_id;
+string submit_id;
 
 bool test_running = false;
 
@@ -40,7 +42,7 @@ void load_config()
     cout << "here\n";
 
     //информация для компиляции/тестов
-    string task_id, submit_id, lang;
+    string lang;
     while (!fin.eof())
     {
         string line;
@@ -116,7 +118,8 @@ int main()
         ofstream fout((submit_path+"/compilation.txt").c_str());
         fout << "compilation error";
         fout.close();
-        system("pause");
+        ofstream outmanager("outmanager/"+task_id+"_"+submit_id);
+        outmanager.close();
         return 0;
     }
 
@@ -192,6 +195,10 @@ int main()
         }
         fout.close();
     }
-    remove((submit_path+"/"+prog_name+".exe").c_str());
+    remove((submit_path+"/"+prog_name+".exe").c_str()); //странно, но файл не удаляется(((
+
+    //костыль с id посылки для выходного менеджера
+    ofstream outmanager("outmanager/"+task_id+"_"+submit_id);
+    outmanager.close();
     return 0;
 }
