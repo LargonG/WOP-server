@@ -1,5 +1,4 @@
 import socket
-import pymysql
 import os
 
 SERVER_IP = "192.168.50.19"
@@ -26,12 +25,21 @@ while True:
         sub += i
 
     if sub:
+        if not os.path.exists("submits"):
+            os.mkdir("submits")
+        if not os.path.exists(f"submits/{task_id}"):
+            os.mkdir(f"submits/{task_id}")
         os.mkdir(f"submits/{task_id}/{submit_id}")
         with open(f"submits/{task_id}/{submit_id}/main.{lang}", 'w') as file:
             file.write(sub)
         file.close()
         con.send(bytes("accepted", encoding='utf-8'))
-        #отправить нужное в базу данных
+        con.close()
         
         #запустить тестирующий скрипт
+        with open("testengine.cfg", 'w') as file:
+            file.write(f"task_id: {task_id}\nsubmit_id: {submit_id}\nlang: {lang}")
+        file.close()
+        os.system("testengine.exe >logs.txt")
     con.close()
+    
