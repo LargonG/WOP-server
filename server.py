@@ -1,7 +1,7 @@
 import socket
 import os
 
-SERVER_IP = "192.168.50.19"
+SERVER_IP = ""
 PORT = 1337
 BUF_SIZE = 2*1024
  
