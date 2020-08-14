@@ -1,8 +1,8 @@
 import pymysql
 import os
 import time
-
-mysql_con = pymysql.connect('localhost', 'root', '', 'WOP')
+from contextlib import closing
+from pymysql.cursors import DictCursor
 
 while True:
     #такие костыли с папкой нужны с целью того, что
@@ -13,15 +13,17 @@ while True:
     dirlist = os.listdir("outmanager")
     for line in dirlist:
         problem_id, submit_id = line.split("_")
+        print(problem_id, submit_id)
         #проверяем на ошибку компиляции
         if os.path.exists(f"submits/{problem_id}/{submit_id}/compilation.txt"):
             #послать репорт, что произошла ошибка компиляции
-            with mysql_con:
-                cur = mysql_con.cursor()
-                try:
-                    cur.execute(f"UPDATE submits{problem_id} SET status = \"CE\" WHERE id = {submit_id}")
-                except:
-                    continue
+            try:
+                with closing(pymysql.connect(host="localhost", user="root", password="", db="WOP", charset="utf8mb4", cursorclass=DictCursor)) as connection:
+                    connection.cursor().execute(f"UPDATE submits{problem_id} SET status = \"CE\" WHERE id = {submit_id}")
+                    connection.commit()
+                print("compilation error")
+            except:
+                continue
             os.remove(f"outmanager/{line}")
             continue
         with open(f"tests/{problem_id}/problem.cfg", 'r') as cfg:
@@ -42,21 +44,23 @@ while True:
             report = rep.read()
             if report == "OK" and last_test == test_sets:
                 #здесь надо послать репорт о том что задача на ОК
-                with mysql_con:
-                    cur = mysql_con.cursor()
-                    try:
-                        cur.execute(f"UPDATE submits{problem_id} SET status = \"OK\" WHERE id = {submit_id}")
-                    except:
-                        continue
+                try:
+                    with closing(pymysql.connect(host="localhost", user="root", password="", db="WOP", charset="utf8mb4", cursorclass=DictCursor)) as connection:
+                        connection.cursor().execute(f"UPDATE submits{problem_id} SET status = \"OK\" WHERE id = {submit_id}")
+                        connection.commit()
+                    print("OK")
+                except:
+                    continue
                 
             else:
                 #здесь послать репорт в формате <ошибка><номер_теста>
-                with mysql_con:
-                    cur = mysql_con.cursor()
-                    try:
-                        cur.execute(f"UPDATE submits{problem_id} SET status = \"{report} {last_test}\" WHERE id = {submit_id}")
-                    except:
-                        continue
+                try:
+                    with closing(pymysql.connect(host="localhost", user="root", password="", db="WOP", charset="utf8mb4", cursorclass=DictCursor)) as connection:
+                        connection.cursor().execute(f"UPDATE submits{problem_id} SET status = \"{report} {last_test}\" WHERE id = {submit_id}")
+                        connection.commit()
+                    print(report, last_test)
+                except:
+                    continue
                 
         rep.close()
         os.remove(f"outmanager/{line}")
