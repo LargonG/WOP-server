@@ -107,10 +107,37 @@ void run_test(size_t num)
     SetCurrentDirectory("../../../");
 }
 
+void compile_cpp()
+{
+    system(("g++ -o "+submit_path+"/"+prog_name+" "+submit_path+"/main."+language+"").c_str());
+}
+
+void compile_cs()
+{
+    return;
+}
+
+void compile_java()
+{
+    return;
+}
+
+void compile_c()
+{
+    return;
+}
+
 int main()
 {
     load_config();
-    system(("g++ -o "+submit_path+"/"+prog_name+" "+submit_path+"/main."+language+"").c_str());
+    if (language == "cpp")
+        compile_cpp();
+    else if (language == "cs")
+        compile_cs();
+    else if (language == "java")
+        compile_java();
+    else if (language == "c")
+        compile_c();
 
     ifstream exe((submit_path+"/"+prog_name+".exe").c_str());
     if (!exe.is_open())
