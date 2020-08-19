@@ -13,6 +13,8 @@ while True:
     dirlist = os.listdir("outmanager")
     for line in dirlist:
         problem_id, submit_id = line.split("_")
+        maxtime = 0
+        maxmem = 0
         print(problem_id, submit_id)
         #проверяем на ошибку компиляции
         if os.path.exists(f"submits/{problem_id}/{submit_id}/compilation.txt"):
@@ -26,6 +28,21 @@ while True:
                 continue
             os.remove(f"outmanager/{line}")
             continue
+
+        if os.path.exists(f"submits/{problem_id}/{submit_id}/maxtime.txt"):
+            with open(f"submits/{problem_id}/{submit_id}/maxtime.txt") as timefile:
+                maxtime = int(timefile.read())
+            timefile.close()
+        else:
+            maxtime = 0
+
+        if os.path.exists(f"submits/{problem_id}/{submit_id}/maxmem.txt"):
+            with open(f"submits/{problem_id}/{submit_id}/maxmem.txt") as memfile:
+                maxmem = int(memfile.read())
+            memfile.close()
+        else:
+            maxmem = 0
+
         with open(f"tests/{problem_id}/problem.cfg", 'r') as cfg:
             for line1 in cfg:
                 param, value = line1.split(":")
@@ -47,6 +64,8 @@ while True:
                 try:
                     with closing(pymysql.connect(host="localhost", user="root", password="", db="WOP", charset="utf8mb4", cursorclass=DictCursor)) as connection:
                         connection.cursor().execute(f"UPDATE submits{problem_id} SET status = \"OK\" WHERE id = {submit_id}")
+                        connection.cursor().execute(f"UPDATE submits{problem_id} SET maxtime = {maxtime} WHERE id = {submit_id}")
+                        connection.cursor().execute(f"UPDATE submits{problem_id} SET maxmem = {maxmem} WHERE id = {submit_id}")
                         connection.commit()
                     print("OK")
                 except:
@@ -57,6 +76,8 @@ while True:
                 try:
                     with closing(pymysql.connect(host="localhost", user="root", password="", db="WOP", charset="utf8mb4", cursorclass=DictCursor)) as connection:
                         connection.cursor().execute(f"UPDATE submits{problem_id} SET status = \"{report} {last_test}\" WHERE id = {submit_id}")
+                        connection.cursor().execute(f"UPDATE submits{problem_id} SET maxtime = {maxtime} WHERE id = {submit_id}")
+                        connection.cursor().execute(f"UPDATE submits{problem_id} SET maxmem = {maxmem} WHERE id = {submit_id}")
                         connection.commit()
                     print(report, last_test)
                 except:
