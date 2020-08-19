@@ -1,6 +1,7 @@
 import pymysql
 import os
 import time
+import shutil
 from contextlib import closing
 from pymysql.cursors import DictCursor
 
@@ -85,4 +86,5 @@ while True:
                 
         rep.close()
         os.remove(f"outmanager/{line}")
+        shutil.rmtree(f"submits/{problem_id}/{submit_id}", ignore_errors=True)
     time.sleep(.05)
