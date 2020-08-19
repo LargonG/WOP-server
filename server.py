@@ -8,6 +8,9 @@ BUF_SIZE = 2*1024
 sock = socket.socket()
 sock.bind((SERVER_IP, PORT))
 
+if not os.path.exists("outmanager"):
+    os.mkdir("outmanager")
+
 while True:
     sock.listen(1)
     con, addr = sock.accept()
