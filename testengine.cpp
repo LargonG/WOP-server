@@ -11,6 +11,7 @@ using namespace std;
 size_t time_limit;
 size_t maxmem;
 size_t test_sets;
+
 string submit_path;
 string test_path;
 string language;
@@ -100,8 +101,8 @@ void load_config()
 
 void run_test(size_t num)
 {
-    test_running = true;
     SetCurrentDirectory(submit_path.c_str());
+    test_running = true;
     system((prog_name+" <../../../"+test_path+"/in"+to_string(num)+".txt >../../../"+submit_path+"/out.txt").c_str());
     test_running = false;
     SetCurrentDirectory("../../../");
@@ -150,6 +151,8 @@ int main()
         return 0;
     }
 
+    size_t submit_max_memory = 0;
+    size_t submit_max_time = 0;
     for (int i = 1; i <= test_sets; ++i)
     {
         thread th(run_test, i);//выполнение на 1 тестовом наборе
@@ -169,14 +172,15 @@ int main()
             }
             //мониторинг памяти
             system(("for /f %a in ('wmic process where \"name=\'"+prog_name+".exe\'\" get WorkingSetSize^|findstr [0-9]\') do echo %a >curmem.txt").c_str());
-            ifstream fin(submit_path+"curmem.txt");
+            ifstream fin(submit_path+"/curmem.txt");
             if (fin.is_open())
             {
                 size_t memory;
                 fin >> memory;
                 fin.close();
-            //cout << "Memory=" << memory / 1024 << " kbytes\n";
-                if (memory > maxmem)
+                submit_max_memory = max(submit_max_memory, memory);
+                cout << "Memory=" << memory / 1024 << " kbytes\n";
+                if (submit_max_memory > maxmem)
                 {
                     ML = true;
                     break;
@@ -184,6 +188,7 @@ int main()
                 fin.close();
             }
         }
+        submit_max_time = max(submit_max_time, size_t(clock() - start_time));
         system(("taskkill /f /IM "+prog_name+".exe").c_str());
         th.join();
         ofstream fout((submit_path+"/report"+to_string(i)+".txt").c_str());
@@ -222,8 +227,14 @@ int main()
         }
         fout.close();
     }
-    remove((submit_path+"/"+prog_name+".exe").c_str()); //странно, но файл не удаляется(((
+    //удалением всех ненужных файлов будет заниматься выходной менеджер
 
+    ofstream submit_maxtime(submit_path+"/maxtime.txt");
+    submit_maxtime << submit_max_time;
+    submit_maxtime.close();
+    ofstream submit_maxmem(submit_path+"/maxmem.txt");
+    submit_maxmem << submit_max_memory;
+    submit_maxmem.close();
     //костыль с id посылки для выходного менеджера
     ofstream outmanager("outmanager/"+task_id+"_"+submit_id);
     outmanager.close();
