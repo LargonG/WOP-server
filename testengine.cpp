@@ -1,3 +1,5 @@
+// Copyright © 2020 Mikhail Korobkov. All rights reserved.
+
 #include <iostream>
 #include <vector>
 #include <fstream>
